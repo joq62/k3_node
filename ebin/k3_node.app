@@ -1,0 +1,11 @@
+{application,k3_node,
+             [{description,"An OTP application"},
+              {vsn,"0.1.0"},
+              {registered,[]},
+              {mod,{k3_node_app,[]}},
+              {applications,[kernel,stdlib]},
+              {env,[]},
+              {modules,[k3_lib,k3_node,k3_node_app,k3_node_sup,k3_orchistrate,
+                        k3_remote_host]},
+              {licenses,["Apache 2.0"]},
+              {links,[]}]}.
