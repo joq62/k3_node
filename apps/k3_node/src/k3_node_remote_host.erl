@@ -115,14 +115,17 @@ start_k3(DeploymentName)->
 start(Pid,{HostName,NodeName,CookieStr,PaArgs,EnvArgs,_Appl,NodeDirBase,DeploymentName})->
    
     {ok,Node,NodeDir}=create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase),
-    ok=common_init(Node,NodeDir),
-    ok=etcd_init(Node,NodeDir),
-    ok=sd_init(Node,NodeDir),
-    ok=nodelog_init(Node,NodeDir),    
-    ok=node_init(Node,NodeDir), 
-    ok=k3_init(Node,NodeDir,DeploymentName),
-    ok=k3_controller_init(Node,NodeDir,DeploymentName),  
-    ok=leader_init(Node,NodeDir),  
+    NodeAppl="k3_node.spec",
+    {ok,ApplId}=db_application_spec:read(name,NodeAppl),
+    {ok,ApplVsn}=db_application_spec:read(vsn,NodeAppl),
+    {ok,GitPath}=db_application_spec:read(gitpath,NodeAppl),
+    {ok,StartCmd}=db_application_spec:read(cmd,NodeAppl),
+    
+    ok=rpc:call(Node,application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
+    {ok,"leader.spec",_,_}=node:load_start_appl(Node,NodeDir,ApplId,ApplVsn,GitPath,StartCmd),
+    pong=rpc:call(Node,k3_node,ping,[],5000),
+    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
+					{"OK, Started application at  node ",k3_node," ",Node}]),
     Pid!{start_k3,{ok,Node,NodeDir,HostName}}.
 
 start_result(Key,Vals,Acc)->
