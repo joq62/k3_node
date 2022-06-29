@@ -71,7 +71,7 @@ desired_state(DeploymentName)->
 	      [HostName|_]->
 		  rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 						{" HostsToRestart  ",?MODULE," ",HostsToRestart}]),
-		  case k3_remote_host:start_k3_node(HostName,DeploymentName)	of
+		  case k3_node_remote_host:start_k3_node(HostName,DeploymentName)	of
 		      {ok,Node,NodeDir,HostName}->
 			  rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 						       {"OK: started   ",Node," ",NodeDir," ",HostName," ",DeploymentName}]),
