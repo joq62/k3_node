@@ -23,16 +23,14 @@
 %% --------------------------------------------------------------------
 start()->
     
-    
-    application:load(k3_node),
-    {ok,DeploymentNameAtom}=application:get_env(k3_node,deployment_name),
+    [Vm1|_]=setup(),
+    rpc:call(node(),application,load,[k3_node],5000),
+    {ok,DeploymentNameAtom}= rpc:call(node(),application,get_env,[k3_node,deployment_name],5000),
     DeploymentName=atom_to_list(DeploymentNameAtom),
     init_etcd(),
     
-    
-    
-    ok=rpc:call(node(),application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
-    ok=application:start(k3_node),
+    ok=rpc:call(Vm1,application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
+    ok=rpc:call(Vm1,application,start,[k3_node],5000),
   
     io:format(" sd_server:all() ~p~n",[ sd_server:all()]),
     io:format(" sd_server:get(k3_node) ~p~n",[ sd_server:get(k3_node)]),
@@ -69,10 +67,9 @@ init_etcd()->
 setup()->
   
     % Simulate host
-    R=rpc:call(node(),test_nodes,start_nodes,[],2000),
-%    [Vm1|_]=test_nodes:get_nodes(),
-
-%    Ebin="ebin",
- %   true=rpc:call(Vm1,code,add_path,[Ebin],5000),
- 
-    R.
+    R=rpc:call(node(),test_nodes,start_nodes,[],5000),
+        io:format("R = ~p~n",[R]),
+    [Vm1|_]=test_nodes:get_nodes(),
+    Ebin="ebin",
+    true=rpc:call(Vm1,code,add_path,[Ebin],5000),
+    test_nodes:get_nodes().

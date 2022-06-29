@@ -23,6 +23,8 @@
 %% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
 %% --------------------------------------------------------------------
 start()->
+    
+    gl=setup(),
     ok=application:start(k3),
   
 
@@ -117,9 +119,9 @@ setup()->
   
     % Simulate host
     R=rpc:call(node(),test_nodes,start_nodes,[],2000),
-%    [Vm1|_]=test_nodes:get_nodes(),
-
-%    Ebin="ebin",
- %   true=rpc:call(Vm1,code,add_path,[Ebin],5000),
+    [Vm1|_]=test_nodes:get_nodes(),
+   
+    Ebin="ebin",
+    true=rpc:call(Vm1,code,add_path,[Ebin],5000),
  
     R.
