@@ -8,7 +8,7 @@
   0},
  {<<"etcd">>,
   {git,"https://github.com/joq62/etcd.git",
-       {ref,"a704fa355e5233492c761fa123d97153ae1559b9"}},
+       {ref,"d54a699f43c7b42e73bc354c0ee6a98821915520"}},
   0},
  {<<"k3_controller">>,
   {git,"https://github.com/joq62/k3_controller.git",
