@@ -122,12 +122,11 @@ init([]) ->
    
     ok=application:start(node),
 
-  %  ok=rpc:call(Node,application,set_env,[[{k3_controller,[{deployment_name,DeploymentName}]}]],5000),
-  %  ok=application:start(k3_controller),
-
     ok=rpc:call(node(),application,set_env,[[{leader,[{application_to_track,k3_node}]}]],5000),
     ok=application:start(leader),
 
+    ok=rpc:call(node(),application,set_env,[[{k3_controller,[{deployment_name,DeploymentName}]}]],5000),
+    ok=application:start(k3_controller),
 
     rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 					{"OK, started server at node  ",?MODULE," ",node()}]),
