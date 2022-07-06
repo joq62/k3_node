@@ -39,19 +39,26 @@ start_k3_node(HostName,DeploymentName)->
     PaArgs=" ",
     EnvArgs=" ",
     NodeDirBase=ClusterId,    
-    {ok,Node,NodeDir}=create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase),
-   
     NodeAppl="k3_node.spec",
     {ok,ApplId}=db_application_spec:read(name,NodeAppl),
     {ok,ApplVsn}=db_application_spec:read(vsn,NodeAppl),
     {ok,GitPath}=db_application_spec:read(gitpath,NodeAppl),
     {ok,StartCmd}=db_application_spec:read(cmd,NodeAppl),
     
-    ok=rpc:call(Node,application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
-    {ok,"k3_node.spec",_,_}=node:load_start_appl(Node,NodeDir,ApplId,ApplVsn,GitPath,StartCmd),
-    pong=rpc:call(Node,k3_node,ping,[],5000),
-    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
-					{"OK, Started application at  node ",k3_node," ",Node}]),
+    try create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase) of
+	{ok,Node,NodeDir}->
+	    ok=rpc:call(Node,application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
+	    {ok,"k3_node.spec",_,_}=node:load_start_appl(Node,NodeDir,ApplId,ApplVsn,GitPath,StartCmd),
+	    pong=rpc:call(Node,k3_node,ping,[],5000),
+	    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
+					 {"OK, Started application at  node ",k3_node," ",Node}])
+    catch
+	error:Reason:Stk->
+	    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
+					 {"ERRRO, Failed to start host node ",HostName," ",Reason,Stk}])
+    end,
+ 
+  
     ok.
 
 %% --------------------------------------------------------------------
