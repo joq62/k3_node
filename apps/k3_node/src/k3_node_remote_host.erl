@@ -309,17 +309,17 @@ create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase)->
 		  ok=rpc:call(Node,file,make_dir,[NodeDir],5000),
 		%  rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 		%				       {"Ok, created node at host",Node,HostName}])
-		  {ok,Node,NodeDir}
+		  {ok,Node,NodeDir};
+	      {badrpc,Reason} ->
+		  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
+					       {"badrpc, Failed to start host node ",HostName," ",Reason}]),
+		  {badrpc,[Reason]}
 	  catch
 	      error:Reason:Stk->
 		  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
 					       {"ERROR, Failed to start host node ",HostName," ",Reason,Stk}]),
-		  {error,[Reason,Stk]};
-	      {badrpc,Reason} ->
-		  Stk=erlang:get_stacktrace(),
-		  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
-					       {"badrpc, Failed to start host node ",HostName," ",Reason,Stk}]),
-		  {badrpc,[Reason,Stk]}
+		  {error,[Reason,Stk]}
+	    
 	  end,  
     Result.
 
