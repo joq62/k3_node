@@ -121,19 +121,24 @@ start_k3(DeploymentName)->
 %% --------------------------------------------------------------------
 start(Pid,{HostName,NodeName,CookieStr,PaArgs,EnvArgs,_Appl,NodeDirBase,DeploymentName})->
    
-    {ok,Node,NodeDir}=create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase),
-    NodeAppl="k3_node.spec",
-    {ok,ApplId}=db_application_spec:read(name,NodeAppl),
-    {ok,ApplVsn}=db_application_spec:read(vsn,NodeAppl),
-    {ok,GitPath}=db_application_spec:read(gitpath,NodeAppl),
-    {ok,StartCmd}=db_application_spec:read(cmd,NodeAppl),
-    
-    ok=rpc:call(Node,application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
-    {ok,"k3_node.spec",_,_}=node:load_start_appl(Node,NodeDir,ApplId,ApplVsn,GitPath,StartCmd),
-    pong=rpc:call(Node,k3_node,ping,[],5000),
-    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
-					{"OK, Started application at  node ",k3_node," ",Node}]),
-    Pid!{start_k3,{ok,Node,NodeDir,HostName}}.
+  Result =case create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase) of
+	      {ok,Node,NodeDir}->			  
+		  NodeAppl="k3_node.spec",
+		  {ok,ApplId}=db_application_spec:read(name,NodeAppl),
+		  {ok,ApplVsn}=db_application_spec:read(vsn,NodeAppl),
+		  {ok,GitPath}=db_application_spec:read(gitpath,NodeAppl),
+		  {ok,StartCmd}=db_application_spec:read(cmd,NodeAppl),
+		  ok=rpc:call(Node,application,set_env,[[{k3_node,[{deployment_name,DeploymentName}]}]],5000),
+		  {ok,"k3_node.spec",_,_}=node:load_start_appl(Node,NodeDir,ApplId,ApplVsn,GitPath,StartCmd),
+		  pong=rpc:call(Node,k3_node,ping,[],5000),
+						% rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
+	%				 {"OK, Started application at  node ",k3_node," ",Node}]),
+		  
+		  {ok,Node,NodeDir,HostName};
+	      {error,Reason}->
+		  {error,Reason}
+	  end,
+    Pid!{start_k3,Result}.
 
 start_result(Key,Vals,Acc)->
     [{Vals,Key}|Acc].
@@ -313,7 +318,7 @@ create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase)->
 	      {badrpc,Reason} ->
 		  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
 					       {"badrpc, Failed to start host node ",HostName," ",Reason}]),
-		  {badrpc,[Reason]}
+		  {error,[badrpc,Reason]}
 	  catch
 	      error:Reason:Stk->
 		  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
