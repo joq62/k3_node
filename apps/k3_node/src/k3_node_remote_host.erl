@@ -300,15 +300,22 @@ common_init(Node,NodeDir)->
 %% Returns: non
 %% --------------------------------------------------------------------
 create_node(HostName,NodeName,CookieStr,PaArgs,EnvArgs,NodeDirBase)->
-    {ok,Node}=node:ssh_create(HostName,NodeName,CookieStr,PaArgs,EnvArgs),
-    {ok,Cwd}=rpc:call(Node,file,get_cwd,[],5000),
-    NodeDir=filename:join(Cwd,NodeDirBase),
-    []=rpc:call(Node,os,cmd,["rm -rf "++NodeDir],5000),
-    timer:sleep(2000),
-    ok=rpc:call(Node,file,make_dir,[NodeDir],5000),
-    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
-						       {"Ok, created node at host",Node,HostName}]),
-    {ok,Node,NodeDir}.
-    
+   Result=try node:ssh_create(HostName,NodeName,CookieStr,PaArgs,EnvArgs) of
+	      {ok,Node}->
+		  {ok,Cwd}=rpc:call(Node,file,get_cwd,[],5000),
+		  NodeDir=filename:join(Cwd,NodeDirBase),
+		  []=rpc:call(Node,os,cmd,["rm -rf "++NodeDir],5000),
+		  timer:sleep(2000),
+		  ok=rpc:call(Node,file,make_dir,[NodeDir],5000),
+		%  rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
+		%				       {"Ok, created node at host",Node,HostName}])
+		  {ok,Node,NodeDir}
+	  catch
+	      error:Reason:Stk->
+		  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
+					       {"ERRRO, Failed to start host node ",HostName," ",Reason,Stk}]),
+		{error,[Reason,Stk]}
+	  end,  
+    Result.
 
 %%----------------------------------- EOF --------------------------------%%
