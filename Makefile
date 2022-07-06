@@ -7,7 +7,10 @@ all:
 	rebar3 compile;	
 	cp _build/default/lib/*/ebin/* ebin;
 	rm -rf _build test_ebin logs log;
-	echo Done
+	git add -f *;
+	git commit -m $(m);
+	git push;
+	echo Ok there you go!
 create:
 	rm -rf  *~ */*~ apps/k3_node/src/*.beam test/*.beam test_ebin erl_cra*;
 	rm -rf _build logs log *.pod_dir
