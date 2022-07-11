@@ -16,7 +16,7 @@
   0},
  {<<"leader">>,
   {git,"https://github.com/joq62/leader.git",
-       {ref,"68faf24d060f5d74cea2fd3541058094d41f414e"}},
+       {ref,"08daefa808f401dd32997f6daa88d9c26c5706a8"}},
   0},
  {<<"node">>,
   {git,"https://github.com/joq62/node.git",
