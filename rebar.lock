@@ -12,7 +12,7 @@
   0},
  {<<"k3_controller">>,
   {git,"https://github.com/joq62/k3_controller.git",
-       {ref,"06af43cf1e1c7609836d1496a87701220b41ad7e"}},
+       {ref,"b13ad083563bc04d2bd5cee37462dc302fd99c79"}},
   0},
  {<<"leader">>,
   {git,"https://github.com/joq62/leader.git",
